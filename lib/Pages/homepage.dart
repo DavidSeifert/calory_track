@@ -26,19 +26,13 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Future<String> _readfromDatabase() async {
-    final calories = await dbHelper.getCaloriesForToday();
-    //dbHelper.showValues().then((value) => print(value));
+  Future<String> _getDailyCalories() async {
+    final calories = await dbHelper.getCaloriesForToday(DateTime.now());
     return calories.toString();
   }
 
-  /*
-  Future<String> _showValues() async {
-    final values = await dbHelper.showValues();
-    dbHelper.showValues().then((value) => print(value));
-    return values.toString();
-  }
-*/
+
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             FutureBuilder<String>(
-              future: _readfromDatabase(),
+              future: _getDailyCalories(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');

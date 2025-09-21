@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:intl/intl.dart';
+import 'package:week_of_year/week_of_year.dart';
 
 class Databasehelper {
   static Database? _database;
@@ -12,6 +13,7 @@ class Databasehelper {
   final String _colCalories = 'calories';
   final String _colDate = 'date';
   final String _colTime = 'time';
+  final String _colWeek = 'week';
 
   Databasehelper._constructor();
 
@@ -33,7 +35,8 @@ class Databasehelper {
             $_colId INTEGER PRIMARY KEY AUTOINCREMENT,
             $_colCalories INTEGER NOT NULL,
             $_colDate TEXT NOT NULL,
-            $_colTime TEXT NOT NULL
+            $_colTime TEXT NOT NULL,
+            $_colWeek INTEGER NOT NULL
           )
         ''');
       },
@@ -42,12 +45,16 @@ class Databasehelper {
     return database;
   }
 
+
+
+
   void addEntry(int calories) async {
     final db = await database;
     await db.insert(tableName, {
       _colCalories: calories,
       _colDate: DateFormat("dd.MM.yyyy").format(DateTime.now()),
       _colTime: DateFormat("HH:mm").format(DateTime.now()),
+      _colWeek: DateTime.now().weekOfYear,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -56,12 +63,10 @@ class Databasehelper {
     return db.query(tableName, orderBy: '$_colDate ASC');
   }
 
-  Future<int> getCaloriesForToday() async {
+  Future<int> getCaloriesForToday(DateTime time) async {
     final db = await instance.database;
 
-    final date = DateFormat(
-      "dd.MM.yyyy",
-    ).format(DateTime.now()); 
+    final date = DateFormat("dd.MM.yyyy").format(time);
 
     var result = await db.query(
       tableName,
@@ -81,21 +86,29 @@ class Databasehelper {
     return 0; // no calories logged for today
   }
 
-  Future<List<int>> getCaloriesListForToday() async {
+  Future<List<Map<String, dynamic>>> getEntriesForDay(DateTime time) async {
     final db = await instance.database;
-    List<int> caloriesList = [];
-    final date = DateFormat(
-      "dd.MM.yyyy",
-    ).format(DateTime.now()); 
+
+    final date = DateFormat("dd.MM.yyyy").format(time);
 
     var result = await db.query(
       tableName,
       where: 'date = ?',
       whereArgs: [date],
     );
-    for (int i = 0; i < result.length; i++) {
-      caloriesList.add(result[i]['calories'] as int? ?? 0);
-    }
-    return caloriesList;// Default return while waiting for async result
+
+    return result;
+  }
+
+  Future<List<Map<String, dynamic>>> getEntriesForWeek(int week) async {
+    final db = await instance.database;
+
+    var result = await db.query(
+      tableName,
+      where: 'week = ?',
+      whereArgs: [week],
+    );
+
+    return result;
   }
 }

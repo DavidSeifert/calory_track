@@ -1,19 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:calory_track/Helpers/database_helper.dart';
 
-class OverviewPage extends StatelessWidget {
+class Weekselectionpage extends StatelessWidget {
   final String title;
+  final int weekNumber;
   final Databasehelper dbHelper = Databasehelper.instance;
+  Weekselectionpage({super.key, required this.title, required this.weekNumber});
 
-  OverviewPage({super.key, required this.title});
 
   Future<List<Map<String, dynamic>>> _getEntries() async {
-    final rawEntries = await dbHelper.getEntriesForDay(
-      DateTime.now(),
-      
-    );
-
+    final rawEntries = await dbHelper.getEntriesForWeek(weekNumber);
     final calories = <int>[];
 
     for (var entry in rawEntries) {
@@ -22,7 +18,6 @@ class OverviewPage extends StatelessWidget {
 
     return rawEntries;
   }
-
 Widget _buildEntries() {
   return FutureBuilder<List<Map<String, dynamic>>>(
     future: _getEntries(),
@@ -46,7 +41,7 @@ Widget _buildEntries() {
         itemBuilder: (context, index) {
           final entry = entries[index];
           final calories = entry['calories'] as int;
-          final time = entry['time']; // Adjust field name if needed
+          final date = entry['date']; // Adjust field name if needed
 
           return Card(
             elevation: 5,
@@ -54,14 +49,15 @@ Widget _buildEntries() {
             child: ListTile(
               leading: Icon(Icons.local_fire_department, color: Colors.redAccent),
               title: Text('Calories: $calories'),
-              subtitle: Text('Time: $time'),
+              subtitle: Text('Date: $date'),
             ),
           );
         },
       );
     },
   );
-}
+} 
+
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +70,7 @@ Widget _buildEntries() {
       body: _buildEntries(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.push('/monthselectionpage');
+          null;
         },
         tooltip: 'Add',
         child: Icon(Icons.calendar_today),
